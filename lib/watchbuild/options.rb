@@ -22,6 +22,10 @@ module WatchBuild
                                      description: "Only check for the build once, instead of waiting for it to process",
                                      is_string: false,
                                      default_value: false)
+        FastlaneCore::ConfigItem.new(key: :stop_if_no_processing_builds,
+                                     description: "Stop imediatelly if there are no processing builds",
+                                     is_string: false,
+                                     default_value: false)
       ]
     end
   end

@@ -16,9 +16,10 @@ module WatchBuild
       UI.message("Successfully logged in")
 
       start = Time.now
-      build = wait_for_build(start)
-      minutes = ((Time.now - start) / 60).round
-      notification(build, minutes)
+      if build = wait_for_build(start)
+        minutes = ((Time.now - start) / 60).round
+        notification(build, minutes)
+      end
     end
 
     def wait_for_build(start_time)
@@ -27,6 +28,8 @@ module WatchBuild
       loop do
         begin
           build = find_build
+
+          break if build.nil? && WatchBuild.config[:stop_if_no_processing_builds]
           return build if build.processing == false
 
           seconds_elapsed = (Time.now - start_time).to_i.abs
@@ -47,6 +50,7 @@ module WatchBuild
         if WatchBuild.config[:sample_only_once] == false
           sleep 30
         else
+          UI.message "Application build is still processing"
           break
         end
       end
@@ -56,10 +60,7 @@ module WatchBuild
     def notification(build, minutes)
       require 'terminal-notifier'
 
-      if build.nil?
-        UI.message "Application build is still processing"
-        return
-      end
+      return if build.nil?
 
       url = "https://itunesconnect.apple.com/WebObjects/iTunesConnect.woa/ra/ng/app/#{@app.apple_id}/activity/ios/builds/#{build.train_version}/#{build.build_version}/details"
       TerminalNotifier.notify("Build finished processing",
